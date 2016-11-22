@@ -1,0 +1,9 @@
+---
+- hosts: localhost
+  become: true
+  tasks:
+  - name: updates
+    apt:
+      name: nginx
+      state: latest
+      update_cache: yes
