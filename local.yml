@@ -4,11 +4,45 @@
   tasks:
   - name: updates
     apt:
-      name: {{item}}
+      name: "{{item}}"
       state: latest
       update_cache: yes
     with_items:
        - nginx
-       - php5-common
-       - php5-cli
-       - php5-fpm
+       - php
+  - name: update nginx config
+    replace:
+      dest: /etc/nginx/sites-available/default
+      regexp: index index\.html index\.htm index\.nginx-debian\.html;
+      replace: index index.php index.html index.htm index.nginx-debian.html;
+      backup: yes
+  - name: further update nginx config
+    blockinfile:
+      dest: /etc/nginx/sites-available/default
+      insertafter: server_name _;
+      block: |
+        location ~ \.php$ {
+               include snippets/fastcgi-php.conf;
+
+               # With php7.0-cgi alone:
+               #fastcgi_pass 127.0.0.1:9000;
+               # With php7.0-fpm:
+               fastcgi_pass unix:/run/php/php7.0-fpm.sock;
+        }
+    notify:
+      - restart services
+  - name: update index.php
+    copy:
+       src: ./index.php
+       dest: /var/www/html
+
+  handlers:
+  - name: restart services
+    service:
+       name: "{{item}}"
+       state: reloaded
+    with_items:
+       - nginx
+       - php7.0-fpm
+
+
