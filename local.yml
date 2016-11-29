@@ -4,6 +4,11 @@
   tasks:
   - name: updates
     apt:
-      name: nginx
+      name: {{item}}
       state: latest
       update_cache: yes
+    with_items:
+       - nginx
+       - php5-common
+       - php5-cli
+       - php5-fpm
